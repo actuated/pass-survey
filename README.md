@@ -14,7 +14,7 @@ Have a list of passwords you cracked during a pentest or password audit? This sh
 
   Press Enter to review input.txt (2289 lines)...
 
-  =============[ pass-survey.sh - tedr@tracesecurity.com ]=============
+  ============[ pass-survey.sh - Ted R (github: actuated) ]============
 
   File        input.txt
   Passwords 	2289

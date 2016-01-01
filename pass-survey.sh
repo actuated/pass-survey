@@ -1,6 +1,6 @@
 #!/bin/bash
 # pass-survey.sh
-# 10/24/2015 by tedr@tracesecurity.com
+# 10/24/2015 by Ted R (http://github.com/actuated)
 # Script for statistical information about password audit results.
 # Meant to be used with an input file containing passwords only, one per line.
 # 10/26/2015 - Added code to truncate total percentages and average length.
@@ -8,22 +8,23 @@
 # 10/29/2015 - Recreated script with options and usage information.
 # 10/31/2015 - Cosmetic changes, and changed input file to -i for consistency with other scripts.
 # 12/28/2015 - Removed -i for input, input file must be first parameter.
+# 1/1/2016 - Aesthetic change
 
 varDateCreated="10/24/2015"
-varDateLastMod="12/28/2015"
+varDateLastMod="1/1/2016"
 varOutFile=
 varInFile=
 
 function usage
 {
   echo
-  echo "  =============[ pass-survey.sh - tedr@tracesecurity.com ]============="
-  echo
-  echo "  Created $varDateCreated - Last Modified $varDateLastMod"
+  echo "  ============[ pass-survey.sh - Ted R (github: actuated) ]============"
   echo
   echo -e "  This script provides statistical information for passwords."
   echo -e "  Each line of the input file will be reviewed as a password."
   echo -e "  Passwords will be reviewed for character types and length."
+  echo
+  echo "  Created $varDateCreated - Last Modified $varDateLastMod"
   echo
   echo "  ==============================[ usage ]=============================="
   echo
@@ -42,8 +43,6 @@ function usage
   echo
   echo -e "\tabc = Lower Case Letters \t123 = Numbers"
   echo -e "\tABC = Upper Case Letters \t!@# = Symbols and Spaces"
-  echo
-  echo "  =[(c) 2015, free for personal and commercial use with credit intact]="
   echo
   exit
 }
@@ -83,7 +82,7 @@ function pass_survey
 
   read -p "  Press Enter to review $varInFile ($varTotal lines)..."
   echo 
-  echo "  =============[ pass-survey.sh - tedr@tracesecurity.com ]============="
+  echo "  ============[ pass-survey.sh - Ted R (github: actuated) ]============"
   echo
   echo -e "  File \t\t$varInFile"
   echo -e "  Passwords \t$varTotal"
