@@ -3,17 +3,37 @@
 # 10/24/2015 by Ted R (http://github.com/actuated)
 # Script for statistical information about password audit results.
 # Meant to be used with an input file containing passwords only, one per line.
+
+# Dictionary Word lists are based on Princeton WordNet indexes.
+# Index files were parsed to remove any line with digits, ".", "'", "-", "_", or less than 4 characters.
+# Anything after the first 8 characters was cut.
+# Required citations for WordNet license agreement:
+#
+## George A. Miller (1995). WordNet: A Lexical Database for English.
+## Communications of the ACM Vol. 38, No. 11: 39-41.
+##
+## Christiane Fellbaum (1998, ed.) WordNet: An Electronic Lexical Database. Cambridge, MA: MIT Press.
+##
+
 # 10/26/2015 - Added code to truncate total percentages and average length.
 # 10/27/2015 - Reorganized output and coded totals/breakdowns to only show if not 0.
 # 10/29/2015 - Recreated script with options and usage information.
 # 10/31/2015 - Cosmetic changes, and changed input file to -i for consistency with other scripts.
 # 12/28/2015 - Removed -i for input, input file must be first parameter.
-# 1/1/2016 - Aesthetic change
+# 1/1/2016 - Aesthetic change.
+# 1/10/2016 - Added dictionary checks and related options.
 
 varDateCreated="10/24/2015"
-varDateLastMod="1/1/2016"
+varDateLastMod="1/10/2016"
 varOutFile=
 varInFile=
+varDoDict="Y"
+varVerbose="N"
+varCustomDict="dictionaries/custom.txt"
+varCustomOnly="N"
+varTempRandom=$(( ( RANDOM % 9999 ) + 1 ))
+varTempFile="temp-psurvey-$varTempRandom.txt"
+if [ -f "$varTempFile" ]; then rm $varTempFile; fi
 
 function usage
 {
@@ -28,14 +48,24 @@ function usage
   echo
   echo "  ==============================[ usage ]=============================="
   echo
-  echo -e "\t./pass-survey.sh -[input file] [-o [output file]]"
+  echo -e "  ./pass-survey.sh [input file] [options]"
   echo
-  echo -e "\t[input file] \tRequired input file for review"
-  echo -e "\t\t\t\tEach line will be treated as a password"
+  echo -e "  [input file]      Required input file for review"
+  echo -e "                    Each line will be treated as a password"
   echo
-  echo -e "\t-o [output file] \tOptional output file"
+  echo -e "  -o [output file]  Optional output file"
   echo
-  echo -e "\t-h \t\t\tDisplays this usage/about information"
+  echo -e "  --no-dict         Disable dictionary checks"
+  echo
+  echo -e "  --dict [file]     Set a different filename for the custom dict"
+  echo -e "                    Default is dictionaries/custom.txt"
+  echo
+  echo -e "  --only-custom     Only check the custom dictionary"
+  echo
+  echo -e "  -v                Verbose: Retain non-zero dictionary checks"
+  echo -e "                    Verbose output files contain 0 and non-0 checks"
+  echo
+  echo -e "  -h                Displays this usage/about information"
   echo
   echo "  ==============================[ about ]=============================="
   echo
@@ -44,12 +74,207 @@ function usage
   echo -e "\tabc = Lower Case Letters \t123 = Numbers"
   echo -e "\tABC = Upper Case Letters \t!@# = Symbols and Spaces"
   echo
+  echo -e "  Dictionary Parsing"
+  echo
+  echo -e "    Benchmark time to run built-in dicts (w/ -v) was 10 min 52 s."
+  echo -e "    Time should depend on dictionaries and hits, not input file."
+  echo -e "    Script reads each line of each dict, grepping input file to hit."
+  echo
+  echo -e "    - Custom "
+  echo -e "        Default is dictionaries/custom.txt"
+  echo -e "        Modify for custom uses, like company names."
+  echo -e "        Specify another file with --dict [filename]."
+  echo -e "        Use --only-custom to disable other dictionary checks."
+  echo -e "        Tip: These options can let you run a single built-in dict."
+  echo -e "    - Months (12)"
+  echo -e "    - Seasons (4)"
+  echo -e "    - Sports Team Names (115)"
+  echo -e "        Includes MLB, NBA, NFL, and NHL teams."
+  echo -e "    - First Names (2500)"
+  echo -e "        Based on US census data."
+  echo -e "        Includes the 2500 most common names that were 3+ chars."
+  echo -e "    - Last Names (2500)"
+  echo -e "        Based on US census data."
+  echo -e "        Includes the 2500 most common names that were 5+ chars."
+  echo -e "    - Dictionary Words (61937)"
+  echo -e "        Based on Princeton WordNet index files."
+  echo -e "        Does not include words with special chars or spaces."
+  echo -e "        Does not include words with less than 4 chars."
+  echo -e "        Only includes the unique first 8 characters of words."
+  echo -e "    - Years (200)"
+  echo -e "        1900-2199"
+  echo -e "    - Sequential/Repeating Characters (297)"
+  echo -e "        Includes 3-9 char sequential and repeating numbers."
+  echo -e "        Includes 3-8 char sequential and repeating letters."
+  echo -e "        Includes 3-8 char keyboard rows, starting w/ Q, A, and Z."
+  echo
   exit
+}
+
+function dict_check
+{
+  # Dictionary Checks
+
+  varCustom=0
+  varMonth=0
+  varSeason=0
+  varTeam=0
+  varSequential=0
+  varFirstName=0
+  varLastName=0
+  varDictWord=0
+  varYear=0
+
+  echo
+  varTimeNow=$(date +%r)
+  echo "  Dictionary Check: Started $varTimeNow"
+  echo "  Note: See help/usage (-h) for options and information."
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      if [ "$varCustomOnly" = "N" ]; then echo -ne "  Dictionary Check: (1/9) $varCustomName : $varDictLine : $varCheckLine Hit(s)                       "\\r; fi
+      if [ "$varCustomOnly" = "Y" ]; then echo -ne "  Dictionary Check: (1/1) $varCustomName : $varDictLine : $varCheckLine Hit(s)                       "\\r; fi
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varCustom=varCustom+varCheckLine
+      fi
+    done < "$varCustomDict"
+
+    if [ "$varCustomOnly" = "N" ]; then
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (2/9) Months : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varMonth=varMonth+varCheckLine
+      fi
+    done < dictionaries/months.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (3/9) Seasons : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varSeason=varSeason+varCheckLine
+      fi
+    done < dictionaries/seasons.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (4/9) Sports Teams : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varTeam=varTeam+varCheckLine
+      fi
+    done < dictionaries/teams.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (5/9) First Names : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varFirstName=varFirstName+varCheckLine
+      fi
+    done < dictionaries/firstnames.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (6/9) Last Names : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varLastName=varLastName+varCheckLine
+      fi
+    done < dictionaries/lastnames.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (7/9) Words : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varDictWord=varDictWord+varCheckLine
+      fi
+    done < dictionaries/words.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (8/9) Years : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varYear=varYear+varCheckLine
+      fi
+    done < dictionaries/years.txt
+
+    varDictLine=""
+    while read varDictLine; do
+      varCheckLine="0"
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
+      echo -ne "  Dictionary Check: (9/9) Sequential/Repeating : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      if [ "$varCheckLine" != "0" ]; then
+        if [ "$varVerbose" = "Y" ]; then echo; fi
+        let varSequential=varSequential+varCheckLine
+      fi
+    done < dictionaries/sequential_repeating.txt
+    fi
+
+  varTimeNow=$(date +%r)
+  echo -e "  Dictionary Check: Done $varTimeNow                                    "
+}
+
+function dict_show
+{
+  echo "  ========================[ dictionary checks ]========================"
+  echo
+  if [ "$varCheckCustom" != "0" ]; then echo -e "\t$varCustom \tHit(s): Custom ($varCustomName)"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varMonth \tHit(s): Months"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varSeason \tHit(s): Seasons"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varTeam \tHit(s): Sports Team Names"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varFirstName \tHit(s): First Names (US Census Top 2500, 3+ Chars)"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varLastName \tHit(s): Last Names (US Census Top 2500, 5+ Chars)"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varDictWord \tHit(s): Words (4 - 1st 8 Chars, WordNet Indexes)"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varYear \tHit(s): Years (1900-2199)"; fi
+  if [ "$varCustomOnly" = "N" ]; then echo -e "\t$varSequential \tHit(s): Sequential or Repeating Chars (3+)"; fi
+  echo
+  echo "  Note: Passwords may hit more than once"
+  echo
 }
 
 function pass_survey
 {
-# Individual Counts
+
+  varTotal="$(wc -l < $varInFile)"
+
+  echo 
+  echo "  ============[ pass-survey.sh - Ted R (github: actuated) ]============"
+  echo
+  echo -e "  File \t\t$varInFile"
+  echo -e "  Passwords \t$varTotal"
+  echo
+  if [ "$varDoDict" = "N" ]; then echo "  Dictionary Checks: Disabled"; fi
+  if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "N" ] && [ "$varCheckCustom" != "0" ]; then echo "  Dictionary Checks: $varCustomName + Built-In"; fi
+  if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "N" ] && [ "$varCheckCustom" = "0" ]; then echo "  Dictionary Checks: Built-In"; fi
+  if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "Y" ]; then echo "  Dictionary Checks: $varCustomName"; fi
+  echo
+  read -p "  Press Enter to begin..."
+  echo
+  echo "  =============================[ parsing ]============================="
+
+# Character Type Individual Counts
   varLowerOnly="$(grep '[[:lower:]]' $varInFile | grep -v '[[:upper:][:digit:][:punct:][:space:]]' | wc -l)"
   varUpperOnly="$(grep '[[:upper:]]' $varInFile | grep -v '[[:lower:][:digit:][:punct:][:space:]]' | wc -l)"
   varDigitOnly="$(grep '[[:digit:]]' $varInFile | grep -v '[[:upper:][:lower:][:punct:][:space:]]' | wc -l)"
@@ -65,30 +290,24 @@ function pass_survey
   varNoUpper="$(grep '[[:lower:]]' $varInFile | grep '[[:digit:]]' | grep '[[:punct:][:space:]]' | grep -v '[[:upper:]]' | wc -l)"
   varNoLower="$(grep '[[:upper:]]' $varInFile | grep '[[:digit:]]' | grep '[[:punct:][:space:]]' | grep -v '[[:lower:]]' | wc -l)"
 
-  # Totals
+  # Character Type Totals
   varSingleTotal=$(($varLowerOnly + $varUpperOnly + $varDigitOnly + $varSpecOnly))
   varDoubleTotal=$(($varLettersOnly + $varLowerDigitOnly + $varUpperDigitOnly + $varDigitSpecOnly + $varLowerSpecOnly + $varUpperSpecOnly))
   varTripleTotal=$(($varNoSpec + $varNoDigit + $varNoUpper + $varNoLower))
   varQuadTotal="$(grep '[[:upper:]]' $varInFile | grep '[[:lower:]]' | grep '[[:digit:]]' | grep '[[:punct:][:space:]]' | wc -l)"
   varBlank="$(grep '^$' $varInFile | wc -l)"
-  varTotal="$(wc -l < $varInFile)"
 
-  # Percentages
+  # Character Type Percentages
   varBlankPercent=$(awk "BEGIN {print $varBlank*100/$varTotal}" | cut -c1-4)%
   varSinglePercent=$(awk "BEGIN {print $varSingleTotal*100/$varTotal}" | cut -c1-4)%
   varDoublePercent=$(awk "BEGIN {print $varDoubleTotal*100/$varTotal}" | cut -c1-4)%
   varTriplePercent=$(awk "BEGIN {print $varTripleTotal*100/$varTotal}" | cut -c1-4)%
   varQuadPercent=$(awk "BEGIN {print $varQuadTotal*100/$varTotal}" | cut -c1-4)%
 
-  read -p "  Press Enter to review $varInFile ($varTotal lines)..."
-  echo 
-  echo "  ============[ pass-survey.sh - Ted R (github: actuated) ]============"
-  echo
-  echo -e "  File \t\t$varInFile"
-  echo -e "  Passwords \t$varTotal"
+  if [ "$varDoDict" = "Y" ]; then dict_check; fi
   echo
 
-  echo "  =========================[ Character Types ]========================="
+  echo "  =========================[ character types ]========================="
   echo
 
   echo "  Totals"
@@ -121,8 +340,8 @@ function pass_survey
   if [ $varNoLower != 0 ]; then echo -e "\t$varNoLower \tABC + 123 + !@#"; fi
   if [ $varQuadTotal != 0 ]; then echo -e "\t$varQuadTotal \tabc + ABC + 123 + !@#"; fi
   echo 
-
-  echo "  =========================[ Password Length ]========================="
+  if [ "$varDoDict" = "Y" ]; then dict_show; fi
+  echo "  =========================[ password length ]========================="
   echo
   echo "  Average"
   echo
@@ -148,11 +367,26 @@ while [ "$1" != "" ]; do
          varOutFile=$1
          if [ "$varOutFile" = "" ]; then varOutFile="throwerror"; fi # Flag for error if no file name was given
          ;;
+    --no-dict ) varDoDict="N"
+         ;;
+    --dict ) shift
+         varCustomDict=$1
+         if [ ! -f "$varCustomDict" ]; then echo; echo "  Error: Custom dictionary doesn't exist."; usage; fi
+         ;;
+    --only-custom ) varCustomOnly="Y"
+         ;;
+    -v ) varVerbose="Y"
+         ;;
     -h ) usage
          exit
   esac
   shift
 done
+
+# Check custom dict, if --only-custom is used
+varCheckCustom=$(wc -l "$varCustomDict" | awk '{print $1}')
+if [ "$varCheckCustom" = "0" ] && [ "$varCustomOnly" = "Y" ]; then echo; echo "  Error: --only-custom was used, but $varCustomDict has 0 lines."; usage; fi
+varCustomName=$(echo "$varCustomDict" | awk -F '/' '{print $NF}')
 
 if [ "$varInFile" != "" ]; then # Make sure input file was given or error
   if [ -f $varInFile ]; then # Make sure input file exists or error
@@ -170,7 +404,7 @@ if [ "$varInFile" != "" ]; then # Make sure input file was given or error
 
       # Run pass_survey function with output
       echo
-      pass_survey | tee $varOutFile
+      pass_survey | tee "$varTempFile"
     else
       echo # Run pass_survey function without output
       pass_survey
@@ -186,3 +420,12 @@ else # Error on failure to provide input file
   usage
 fi
 
+if [ "$varOutFile" != "" ] && [ "$varVerbose" = "N" ]; then
+  cat "$varTempFile" | grep -v ' : ' > $varOutFile
+  rm "$varTempFile"
+fi
+
+if [ "$varOutFile" != "" ] && [ "$varVerbose" = "Y" ]; then
+  cat "$varTempFile" > $varOutFile
+  rm "$varTempFile"
+fi
