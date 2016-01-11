@@ -1,5 +1,5 @@
 # pass-survey
-Have a list of passwords you cracked during a pentest or password audit? This shell script will give you statistical information about different character type combinations and password lengths. Dictionary checks are now included, with built-in dictionaries for months, seasons, sports teams, first and last names, dictionary words, years, and sequential or repeating numbers.
+Have a list of passwords you cracked during a pentest or password audit? This shell script will give you statistical information about different character type combinations and password lengths. Dictionary checks are now included, with built-in dictionaries for months, seasons, sports teams, first and last names, dictionary words, years, and sequential or repeating letters and numbers.
 
 # Usage
 `pass-survey.sh` only requires an input file. Each line of the input file will be treated as a password.
