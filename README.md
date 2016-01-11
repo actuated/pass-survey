@@ -16,11 +16,11 @@ Dictionary checks have been added, so that passwords can be checked for common s
 
 **--only-custom** disables the (other) built-in dictionaries. It will use `dictionaries/custom.txt`, or the file specified with `--dict [dictionaryfilename]`.
 
-**-v** specifies verbose output. While doing dictionar checks, the current dictionary and line being checked is shown as it runs. Without this option, that line keeps getting overwritten, regardless of whether there are 0 or more hits. With this option, lines with hits are retained, and the scrolling attempts move down a line.
+**-v** specifies verbose output. While doing dictionary checks, the current dictionary and line being checked is shown as it runs. Without this option, that line keeps getting overwritten, regardless of whether there are 0 or more hits. With this option, lines with hits are retained, and the scrolling attempts move down a line.
 
 # Dictionary Checks
 
-Built-in dictionaries are included in the `dictionaries` directory. The script reads through each line or each dictionary, doing a case-insensitive grep for that line in the input file. Thus, the timing depends primarily on the dictionaries and not the input file. Benchmarks were done with 50, 900, and 9000 line input files and verbose mode, during which the built-in dictionaries averaged 10 minutes and 52 seconds on a Kali 2 VM with 4 GB of memory on a desktop computer. This average was consistent with vastly different input files.
+Built-in dictionaries are included in the `dictionaries` directory. The script reads through each line of each dictionary, doing a case-insensitive grep for that line in the input file. Thus, the timing depends primarily on the dictionaries and not the input file. Benchmarks were done with 50, 900, and 9000 line input files and verbose mode, during which the built-in dictionaries averaged 10 minutes and 52 seconds on a Kali 2 VM with 4 GB of memory on a desktop computer.
 
 * Custom
   - The default file is `dictionaries/custom.txt`. This is empty, and is there so you can customize it with content like company-specific strings or other personalized dictionary checks.
