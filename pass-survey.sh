@@ -22,18 +22,16 @@
 # 12/28/2015 - Removed -i for input, input file must be first parameter.
 # 1/1/2016 - Aesthetic change.
 # 1/10/2016 - Added dictionary checks and related options.
+# 1/11/2016 - Changed output during dictionary checks.
 
 varDateCreated="10/24/2015"
-varDateLastMod="1/10/2016"
+varDateLastMod="1/11/2016"
 varOutFile=
 varInFile=
 varDoDict="Y"
 varVerbose="N"
 varCustomDict="dictionaries/custom.txt"
 varCustomOnly="N"
-varTempRandom=$(( ( RANDOM % 9999 ) + 1 ))
-varTempFile="temp-psurvey-$varTempRandom.txt"
-if [ -f "$varTempFile" ]; then rm $varTempFile; fi
 
 function usage
 {
@@ -62,8 +60,7 @@ function usage
   echo
   echo -e "  --only-custom     Only check the custom dictionary"
   echo
-  echo -e "  -v                Verbose: Retain non-zero dictionary checks"
-  echo -e "                    Verbose output files contain 0 and non-0 checks"
+  echo -e "  -v                Verbose: Show hits during dictionary checks"
   echo
   echo -e "  -h                Displays this usage/about information"
   echo
@@ -131,109 +128,112 @@ function dict_check
   echo "  Note: See help/usage (-h) for options and information."
 
     varDictLine=""
+    if [ "$varCustomOnly" = "N" ]; then echo "  Dictionary Check: (1/9) $varCustomName"; fi
+    if [ "$varCustomOnly" = "Y" ]; then echo "  Dictionary Check: (1/1) $varCustomName"; fi
     while read varDictLine; do
       varCheckLine="0"
       varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      if [ "$varCustomOnly" = "N" ]; then echo -ne "  Dictionary Check: (1/9) $varCustomName : $varDictLine : $varCheckLine Hit(s)                       "\\r; fi
-      if [ "$varCustomOnly" = "Y" ]; then echo -ne "  Dictionary Check: (1/1) $varCustomName : $varDictLine : $varCheckLine Hit(s)                       "\\r; fi
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then
+          if [ "$varCustomOnly" = "N" ]; then echo "  Dictionary Check: (1/9) $varCustomName : $varDictLine : $varCheckLine Hit(s)"; fi
+          if [ "$varCustomOnly" = "Y" ]; then echo "  Dictionary Check: (1/1) $varCustomName : $varDictLine : $varCheckLine Hit(s)"; fi       
+        fi
         let varCustom=varCustom+varCheckLine
       fi
     done < "$varCustomDict"
 
     if [ "$varCustomOnly" = "N" ]; then
     varDictLine=""
+    echo "  Dictionary Check: (2/9) Months"
     while read varDictLine; do
       varCheckLine="0"
-      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (2/9) Months : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')      
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (2/9) Months : $varDictLine : $varCheckLine Hit(s)"; fi
         let varMonth=varMonth+varCheckLine
       fi
     done < dictionaries/months.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (3/9) Seasons"
     while read varDictLine; do
       varCheckLine="0"
-      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (3/9) Seasons : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')      
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (3/9) Seasons : $varDictLine : $varCheckLine Hit(s)"; fi
         let varSeason=varSeason+varCheckLine
       fi
     done < dictionaries/seasons.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (4/9) Sports Teams"
     while read varDictLine; do
       varCheckLine="0"
       varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (4/9) Sports Teams : $varDictLine : $varCheckLine Hit(s)                       "\\r
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (4/9) Sports Teams : $varDictLine : $varCheckLine Hit(s)"; fi
         let varTeam=varTeam+varCheckLine
       fi
     done < dictionaries/teams.txt
 
     varDictLine=""
+      echo "  Dictionary Check: (5/9) First Names"
     while read varDictLine; do
       varCheckLine="0"
-      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (5/9) First Names : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')      
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (5/9) First Names : $varDictLine : $varCheckLine Hit(s)"; fi
         let varFirstName=varFirstName+varCheckLine
       fi
     done < dictionaries/firstnames.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (6/9) Last Names"
     while read varDictLine; do
       varCheckLine="0"
       varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (6/9) Last Names : $varDictLine : $varCheckLine Hit(s)                       "\\r
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (6/9) Last Names : $varDictLine : $varCheckLine Hit(s)"; fi
         let varLastName=varLastName+varCheckLine
       fi
     done < dictionaries/lastnames.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (7/9) Words"
     while read varDictLine; do
       varCheckLine="0"
       varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (7/9) Words : $varDictLine : $varCheckLine Hit(s)                       "\\r
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (7/9) Words : $varDictLine : $varCheckLine Hit(s)"; fi
         let varDictWord=varDictWord+varCheckLine
       fi
     done < dictionaries/words.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (8/9) Years"
     while read varDictLine; do
       varCheckLine="0"
-      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (8/9) Years : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')      
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (8/9) Years : $varDictLine : $varCheckLine Hit(s)"; fi
         let varYear=varYear+varCheckLine
       fi
     done < dictionaries/years.txt
 
     varDictLine=""
+    echo "  Dictionary Check: (9/9) Sequential/Repeating"
     while read varDictLine; do
       varCheckLine="0"
-      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')
-      echo -ne "  Dictionary Check: (9/9) Sequential/Repeating : $varDictLine : $varCheckLine Hit(s)                       "\\r
+      varCheckLine=$(grep -i "$varDictLine" "$varInFile" | wc -l | awk '{print $1}')      
       if [ "$varCheckLine" != "0" ]; then
-        if [ "$varVerbose" = "Y" ]; then echo; fi
+        if [ "$varVerbose" = "Y" ]; then echo "  Dictionary Check: (9/9) Sequential/Repeating : $varDictLine : $varCheckLine Hit(s)"; fi
         let varSequential=varSequential+varCheckLine
       fi
     done < dictionaries/sequential_repeating.txt
     fi
 
   varTimeNow=$(date +%r)
-  echo -e "  Dictionary Check: Done $varTimeNow                                    "
+  echo -e "  Dictionary Check: Done $varTimeNow"
 }
 
 function dict_show
@@ -269,8 +269,6 @@ function pass_survey
   if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "N" ] && [ "$varCheckCustom" != "0" ]; then echo "  Dictionary Checks: $varCustomName + Built-In"; fi
   if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "N" ] && [ "$varCheckCustom" = "0" ]; then echo "  Dictionary Checks: Built-In"; fi
   if [ "$varDoDict" = "Y" ] && [ "$varCustomOnly" = "Y" ]; then echo "  Dictionary Checks: $varCustomName"; fi
-  echo
-  read -p "  Press Enter to begin..."
   echo
   echo "  =============================[ parsing ]============================="
 
@@ -401,12 +399,10 @@ if [ "$varInFile" != "" ]; then # Make sure input file was given or error
         echo "  Warning: $varOutFile exists."
         read -p "  Press Enter to continue and overwrite..."
       fi
-
       # Run pass_survey function with output
-      echo
-      pass_survey | tee "$varTempFile"
+      pass_survey | tee "$varOutFile"
     else
-      echo # Run pass_survey function without output
+      # Run pass_survey function without output
       pass_survey
     fi
   else # Error on input file that doesn't exist
@@ -418,14 +414,4 @@ else # Error on failure to provide input file
   echo
   echo -e "  Error: Input file was not specified."
   usage
-fi
-
-if [ "$varOutFile" != "" ] && [ "$varVerbose" = "N" ]; then
-  cat "$varTempFile" | grep -v ' : ' > $varOutFile
-  rm "$varTempFile"
-fi
-
-if [ "$varOutFile" != "" ] && [ "$varVerbose" = "Y" ]; then
-  cat "$varTempFile" > $varOutFile
-  rm "$varTempFile"
 fi
