@@ -16,7 +16,7 @@ Dictionary checks have been added, so that passwords can be checked for common s
 
 **--only-custom** disables the (other) built-in dictionaries. It will use `dictionaries/custom.txt`, or the file specified with `--dict [dictionaryfilename]`.
 
-**-v** specifies verbose output. While doing dictionary checks, the current dictionary and line being checked is shown as it runs. Without this option, that line keeps getting overwritten, regardless of whether there are 0 or more hits. With this option, lines with hits are retained, and the scrolling attempts move down a line.
+**-v** specifies verbose output. During dictionary checks, this will display each dictionary search string that hit, along with the number of times it hit. Without `-v`, dictionary check output will only show the start time, the start of each dictionary, and the end time.
 
 # Dictionary Checks
 
@@ -56,7 +56,6 @@ Built-in dictionaries are included in the `dictionaries` directory. The script r
 ```
 # ./pass-survey.sh testfile.txt -v
 
-
   ============[ pass-survey.sh - Ted R (github: actuated) ]============
 
   File          testfile.txt
@@ -64,15 +63,20 @@ Built-in dictionaries are included in the `dictionaries` directory. The script r
 
   Dictionary Checks: Built-In
 
-  Press Enter to begin...
-
   =============================[ parsing ]=============================
 
   Dictionary Check: Started 09:58:06 PM
   Note: See help/usage (-h) for options and information.
-  Dictionary Check: (4/9) Sports Teams : penguins : 1 Hit(s)                           
+  Dictionary Check: (1/9) custom.txt
+  Dictionary Check: (2/9) Months
+  Dictionary Check: (3/9) Seasons
+  Dictionary Check: (4/9) Sports Teams
+  Dictionary Check: (4/9) Sports Teams : penguins : 1 Hit(s) 
+  Dictionary Check: (5/9) First Names
   Dictionary Check: (5/9) First Names : john : 1 Hit(s)                                
   Dictionary Check: (5/9) First Names : johnny : 1 Hit(s)                          
+  Dictionary Check: (6/9) Last Names
+  Dictionary Check: (7/9) Words
   Dictionary Check: (7/9) Words : chair : 1 Hit(s)                                    
   Dictionary Check: (7/9) Words : hair : 1 Hit(s)                           
   Dictionary Check: (7/9) Words : john : 1 Hit(s)                           
@@ -82,7 +86,9 @@ Built-in dictionaries are included in the `dictionaries` directory. The script r
   Dictionary Check: (7/9) Words : penguin : 1 Hit(s)                        
   Dictionary Check: (7/9) Words : sword : 1 Hit(s)                          
   Dictionary Check: (7/9) Words : word : 1 Hit(s)                           
+  Dictionary Check: (8/9) Years
   Dictionary Check: (8/9) Years : 2016 : 1 Hit(s)                           
+  Dictionary Check: (9/9) Sequential/Repeating
   Dictionary Check: (9/9) Sequential/Repeating : 999 : 1 Hit(s)                             
   Dictionary Check: (9/9) Sequential/Repeating : abc : 1 Hit(s)                            
   Dictionary Check: Done 10:08:55 PM                                                       
