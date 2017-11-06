@@ -7,4 +7,4 @@ Have a list of passwords you cracked during a pentest or password audit? This sh
 `./pass-survey.sh [input file] [--top [number]]`
 
   - **[input file]** must be the first parameter.
-  - **--top** optionally lets you specify the number of most common password, bases, and password lengths to list by specifying a **[number]**. By default, the top 10 are shown.
+  - **--top** optionally lets you specify the number of most common password and bases to list by specifying a **[number]**. By default, the top 10 are shown.

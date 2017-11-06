@@ -4,13 +4,12 @@
 # v2.0 - 11/05/2017
 # Script to analyze a list of passwords, one per line
 # Overhaul to replace slow while-loop dictionary checks with a faster grep for repeated four+ letter bases
+# 11/05/2017 - Changed password length to all instead of top x, removed sorting but left lines commented out for sorting password length breakdown, character type checks by count
 varDateCreated="10/24/2015"
-varDateLastMod="11/03/2017"
+varDateLastMod="11/05/2017"
 
 varInFile="N"
 varTopX="10"
-varCol1=20
-varColX=10
 
 echo
 echo "====================[ pass-survey.sh - Ted R (github: actuated) ]===================="
@@ -60,8 +59,8 @@ while [ "$1" != "" ]; do
        echo
        echo "[input file]           Specify an input file containing passwords on each line."
        echo
-       echo "--top [number]         Optionally specify the number of top passwords, top password"
-       echo "                       bases, and top password lengths. Default is 10."
+       echo "--top [number]         Optionally specify the number of top passwords & top password"
+       echo "                       bases. Default is 10."
        echo
        echo "=======================================[ fin ]======================================="
        echo
@@ -87,11 +86,13 @@ printf "%-32s%-10s\n" "Unique Passwords:" "$varCountUniq"
 # Top X passwords
 echo
 echo "Top $varTopX Passwords:"
+echo
 sort "$varInFile" | uniq -c | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
 
 # Top X password bases
 echo
 echo "Top $varTopX Password Bases (4+ Letters):"
+echo
 grep -o '[[:alpha:]]*' "$varInFile" | grep .... | tr 'A-Z' 'a-z' | sort | uniq -c | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
 
 echo
@@ -103,8 +104,11 @@ echo
 printf "%-32s%-s\n" "Average Length:" "$varAverageLength"
 
 echo
-echo "Top $varTopX Password Lengths:"
-awk '{++a[length()]} END{for (i in a) print i " Characters" "\t\t\t_" a[i] "_\t" a[i]*100/'$varTotal'"%"}' "$varInFile" | sort -t_ -k2 -nr  | tr -d '_' | head -n "$varTopX"
+#echo "Top $varTopX Password Lengths:"
+echo "Password Length Breakdown:"
+echo
+#awk '{++a[length()]} END{for (i in a) print i " Characters" "\t\t\t_" a[i] "_\t" a[i]*100/'$varTotal'"%"}' "$varInFile" | sort -t_ -k2 -nr  | tr -d '_' | head -n "$varTopX"
+awk '{++a[length()]} END{for (i in a) print i " Characters" "\t\t\t" a[i] "\t" a[i]*100/'$varTotal'"%"}' "$varInFile"
 
 echo
 echo "=================================[ character types ]================================="
@@ -142,6 +146,7 @@ varQuadPercent=$(awk "BEGIN {print $varQuadTotal*100/$varTotal}" | cut -c1-4)%
 # Display Character Type Summary
 echo
 echo "Character Type Summary:"
+echo
 function fnCharacterSummary {
   printf "%-33s%-8s%-8s\n" "Blank Passwords_" "$varBlank" "_$varBlankPercent"
   printf "%-33s%-8s%-8s\n" "Only One Character Type_" "$varSingleTotal" "_$varSinglePercent"
@@ -149,11 +154,13 @@ function fnCharacterSummary {
   printf "%-33s%-8s%-8s\n" "Only Three Chracter Types_" "$varTripleTotal" "_$varTriplePercent"
   printf "%-33s%-8s%-8s\n" "All Four Character Types_" "$varQuadTotal" "_$varQuadPercent"
 }
-fnCharacterSummary | sort -t_ -k2 -nr | tr -d '_'
+#fnCharacterSummary | sort -t_ -k2 -nr | tr -d '_'
+fnCharacterSummary |  tr -d '_'
 
 # Display Character Type Breakdown
 echo
 echo "Character Type Breakdown:"
+echo
 function fnCharacterBreakdown {
   if [ $varBlank != 0 ]; then printf "%-33s%-8s\n" "Blank Passwords_" "$varBlank"; fi
   if [ $varLowerOnly != 0 ]; then printf "%-33s%-8s\n" "abc_" "$varLowerOnly"; fi
@@ -171,10 +178,12 @@ function fnCharacterBreakdown {
   if [ $varNoLower != 0 ]; then printf "%-33s%-8s\n" "ABC + 123 + !@#_" "$varNoLower"; fi
   if [ $varQuadTotal != 0 ]; then printf "%-33s%-8s\n" "abc + ABC + 123 + !@#_" "$varQuadTotal"; fi
 }
-fnCharacterBreakdown | sort -t_ -k2 -nr | tr -d '_'
+#fnCharacterBreakdown | sort -t_ -k2 -nr | tr -d '_'
+fnCharacterBreakdown | tr -d '_'
 
 echo
 echo "Legend:"
+echo
 echo -e "abc - Lowercase\t\t\tABC - Uppercase\t"
 echo -e "123 - Numbers\t\t\t!@# - Special Characters"
 
