@@ -5,11 +5,14 @@
 # Script to analyze a list of passwords, one per line
 # Overhaul to replace slow while-loop dictionary checks with a faster grep for repeated four+ letter bases
 # 11/05/2017 - Changed password length to all instead of top x, removed sorting but left lines commented out for sorting password length breakdown, character type checks by count
+# 11/08/2017 - Added --bases option to specify a password base dictionary to check against, instead of the default letters. Top passwords and password bases shouldn't include single results now.
 varDateCreated="10/24/2015"
-varDateLastMod="11/05/2017"
+varDateLastMod="11/08/2017"
 
 varInFile="N"
 varTopX="10"
+varBaseMode="Letters"
+varBaseFile="N"
 
 echo
 echo "====================[ pass-survey.sh - Ted R (github: actuated) ]===================="
@@ -37,10 +40,24 @@ while [ "$1" != "" ]; do
       if [ "$varTopX" = "" ] || [ "$varTopX" -lt "1" ]; then
         echo
         echo "Error: --top must specify a number of 1 or greater."
-          echo
-          echo "=======================================[ fin ]======================================="
-          echo
-          exit
+        echo
+        echo "=======================================[ fin ]======================================="
+        echo
+        exit
+      fi
+      ;;
+    --bases )
+      shift
+      varBaseFile="$1"
+      if [ ! -f "$varBaseFile" ]; then
+        echo
+        echo "Error: --bases must be used to specify a file that exists."
+        echo
+        echo "=======================================[ fin ]======================================="
+        echo
+        exit
+      else
+        varBaseMode="File"
       fi
       ;;
      # Help/usage information
@@ -55,12 +72,22 @@ while [ "$1" != "" ]; do
        echo
        echo "======================================[ usage ]======================================"
        echo
-       echo "./pass-survey.sh [input file] [--top [number]]"
+       echo "./pass-survey.sh [input file] [--top [number]] [--bases [file]]"
        echo
        echo "[input file]           Specify an input file containing passwords on each line."
        echo
        echo "--top [number]         Optionally specify the number of top passwords & top password"
        echo "                       bases. Default is 10."
+       echo
+       echo "--bases [file]         Optionally specify a dictionary of password bases to check. By"
+       echo "                       default, the script greps for letters, converts to lowercase,"
+       echo "                       removes strings shorter than four characters, and checks for"
+       echo "                       reuse. With this option, specify your own list that the script"
+       echo "                       will use to do a case-insensitive grep of the input file, and"
+       echo "                       check for how often four+ letter strings are reused."
+       echo
+       echo "                       A list containing lower-case words, names, sports teams, and"
+       echo "                       other common password bases is included as bases.txt."
        echo
        echo "=======================================[ fin ]======================================="
        echo
@@ -87,13 +114,19 @@ printf "%-32s%-10s\n" "Unique Passwords:" "$varCountUniq"
 echo
 echo "Top $varTopX Passwords:"
 echo
-sort "$varInFile" | uniq -c | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
+sort "$varInFile" | uniq -cd | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
 
 # Top X password bases
 echo
-echo "Top $varTopX Password Bases (4+ Letters):"
-echo
-grep -o '[[:alpha:]]*' "$varInFile" | grep .... | tr 'A-Z' 'a-z' | sort | uniq -c | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
+if [ "$varBaseMode" = "Letters" ]; then 
+  echo "Top $varTopX Password Bases (4+ Letters):"
+  echo
+  grep -o '[[:alpha:]]*' "$varInFile" | grep .... | tr 'A-Z' 'a-z' | sort | uniq -cd | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
+elif [ "$varBaseMode" = "File" ]; then 
+  echo "Top $varTopX Password Bases ($varBaseFile):"
+  echo
+  grep -io -F -f "$varBaseFile" "$varInFile" | grep .... | tr 'A-Z' 'a-z' | sort | uniq -cd | sort -nr | head -n "$varTopX" | awk '{printf("%-32s%-10s\n", $2, $1)}'
+fi
 
 echo
 echo "=================================[ password length ]================================="
